@@ -17,10 +17,19 @@ const createSubmission = async (req, res) => {
 
     const parsedHackathonId = parseInt(hackathonId, 10);
 
+    // MongoDB Flow
     if (getIsConnected()) {
       const hackathonExists = await HackathonModel.findOne({ id: parsedHackathonId });
       if (!hackathonExists) {
         return res.status(404).json({ message: "Associated hackathon does not exist." });
+      }
+
+      if (hackathonExists.submissionDeadline) {
+        const now = new Date();
+        const deadline = new Date(hackathonExists.submissionDeadline);
+        if (now > deadline) {
+          return res.status(400).json({ message: "Submissions for this hackathon are closed." });
+        }
       }
 
       const totalCount = await SubmissionModel.countDocuments();
@@ -40,14 +49,21 @@ const createSubmission = async (req, res) => {
       });
     }
 
-    // Fallback to in-memory store
-    const hackathonExists = hackathonsInMemory.some((h) => h.id === parsedHackathonId);
+    // Fallback to In-Memory Store
+    const hackathonExists = hackathonsInMemory.find((h) => h.id === parsedHackathonId);
     if (!hackathonExists) {
       return res.status(404).json({ message: "Associated hackathon does not exist." });
     }
 
-    const newId = submissionsInMemory.length > 0 ? Math.max(...submissionsInMemory.map((s) => s.id)) + 1 : 1;
+    if (hackathonExists.submissionDeadline) {
+      const now = new Date();
+      const deadline = new Date(hackathonExists.submissionDeadline);
+      if (now > deadline) {
+        return res.status(400).json({ message: "Submissions for this hackathon are closed." });
+      }
+    }
 
+    const newId = submissionsInMemory.length > 0 ? Math.max(...submissionsInMemory.map((s) => s.id)) + 1 : 1;
     const newSubmission = {
       id: newId,
       hackathonId: parsedHackathonId,
@@ -58,7 +74,6 @@ const createSubmission = async (req, res) => {
       description,
       submittedAt: new Date().toISOString()
     };
-
     submissionsInMemory.push(newSubmission);
 
     res.status(201).json({
@@ -70,7 +85,7 @@ const createSubmission = async (req, res) => {
   }
 };
 
-// Read all submissions
+// Get all submissions
 const getAllSubmissions = async (req, res) => {
   try {
     if (getIsConnected()) {
@@ -83,7 +98,7 @@ const getAllSubmissions = async (req, res) => {
   }
 };
 
-// Read submissions belonging to a specific hackathon
+// Get submissions by hackathon ID
 const getSubmissionsByHackathon = async (req, res) => {
   try {
     const hackathonId = parseInt(req.params.hackathonId, 10);

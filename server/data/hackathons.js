@@ -8,7 +8,8 @@ const hackathons = [
     timeline: "Opening Ceremony: 09:00 AM | Hacking Begins: 10:00 AM | Mentorship: 02:00 PM | Submissions Close: 08:00 PM",
     date: "2026-09-15",
     location: "Online",
-    prizePool: "₹1,00,000"
+    prizePool: "₹1,00,000",
+    submissionDeadline: "2026-08-16T23:59:00"
   },
   {
     id: 2,
@@ -18,7 +19,8 @@ const hackathons = [
     timeline: "Keynote & Problem Statements: 10:00 AM | Code Freeze: 06:00 PM | Demos & Judging: 07:00 PM",
     date: "2026-10-01",
     location: "Tech Park Auditorium, Bengaluru",
-    prizePool: "₹75,000"
+    prizePool: "₹75,000",
+    submissionDeadline: "2026-08-15T23:59:00"
   },
   {
     id: 3,
@@ -28,7 +30,8 @@ const hackathons = [
     timeline: "Kickoff Stream: 11:00 AM | Hacking Window: 24 Hours | Final Pitch Presentation: Next Day 12:00 PM",
     date: "2026-10-20",
     location: "Hybrid (Delhi Campus & Online)",
-    prizePool: "₹50,000"
+    prizePool: "₹50,000",
+    submissionDeadline: "2026-08-17T23:59:00"
   },
   {
     id: 4,
@@ -38,7 +41,8 @@ const hackathons = [
     timeline: "Orientation: 09:30 AM | Building Phase: 10:30 AM - 05:00 PM | Winner Announcement: 06:30 PM",
     date: "2026-11-05",
     location: "Online",
-    prizePool: "₹80,000"
+    prizePool: "₹80,000",
+    submissionDeadline: "2026-08-18T23:59:00"
   },
   {
     id: 5,
@@ -48,7 +52,8 @@ const hackathons = [
     timeline: "Theme Reveal: 08:00 AM | Sprinting: 08:30 AM - 06:30 PM | Evaluation: 07:00 PM",
     date: "2026-11-25",
     location: "Innovation Hub, Mumbai",
-    prizePool: "₹60,000"
+    prizePool: "₹60,000",
+    submissionDeadline: "2026-08-19T23:59:00"
   }
 ];
 

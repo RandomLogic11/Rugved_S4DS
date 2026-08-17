@@ -45,12 +45,12 @@ const getHackathonById = async (req, res) => {
 const updateHackathon = async (req, res) => {
   try {
     const hackathonId = parseInt(req.params.id, 10);
-    const { title, description, rules, timeline, date, location, prizePool } = req.body;
+    const { title, description, rules, timeline, date, location, prizePool, submissionDeadline } = req.body;
 
     if (getIsConnected()) {
       const updatedHackathon = await HackathonModel.findOneAndUpdate(
         { id: hackathonId },
-        { $set: { title, description, rules, timeline, date, location, prizePool } },
+        { $set: { title, description, rules, timeline, date, location, prizePool, submissionDeadline } },
         { new: true }
       );
 
@@ -73,6 +73,7 @@ const updateHackathon = async (req, res) => {
     if (date !== undefined) hackathonsInMemory[hackathonIndex].date = date;
     if (location !== undefined) hackathonsInMemory[hackathonIndex].location = location;
     if (prizePool !== undefined) hackathonsInMemory[hackathonIndex].prizePool = prizePool;
+    if (submissionDeadline !== undefined) hackathonsInMemory[hackathonIndex].submissionDeadline = submissionDeadline;
 
     res.status(200).json(hackathonsInMemory[hackathonIndex]);
   } catch (error) {
@@ -106,9 +107,60 @@ const deleteHackathon = async (req, res) => {
   }
 };
 
+// Create a new hackathon
+const createHackathon = async (req, res) => {
+  try {
+    const { title, description, date, location, prizePool, rules, timeline, submissionDeadline } = req.body;
+
+    if (!title || !description || !date) {
+      return res.status(400).json({ message: "Title, description, and date are required." });
+    }
+
+    if (getIsConnected()) {
+      const totalCount = await HackathonModel.countDocuments();
+      const newHackathon = await HackathonModel.create({
+        id: totalCount + 1,
+        title,
+        description,
+        date,
+        location: location || "Online",
+        prizePool: prizePool || "N/A",
+        rules: rules || "",
+        timeline: timeline || "",
+        submissionDeadline: submissionDeadline || ""
+      });
+      return res.status(201).json(newHackathon);
+    }
+
+    // Fallback to in-memory store
+    const newId = hackathonsInMemory.length > 0 ? Math.max(...hackathonsInMemory.map((h) => h.id)) + 1 : 1;
+
+    const newHackathon = {
+      id: newId,
+      title,
+      description,
+      date,
+      location: location || "Online",
+      prizePool: prizePool || "N/A",
+      rules: rules || "",
+      timeline: timeline || "",
+      submissionDeadline: submissionDeadline || ""
+    };
+
+    hackathonsInMemory.push(newHackathon);
+
+    res.status(201).json(newHackathon);
+  } catch (error) {
+    res.status(500).json({ message: "Server error while creating hackathon." });
+  }
+};
+
+
+
 module.exports = {
   getAllHackathons,
   getHackathonById,
+  createHackathon,
   updateHackathon,
   deleteHackathon
 };

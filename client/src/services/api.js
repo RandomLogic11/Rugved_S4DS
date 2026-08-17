@@ -43,3 +43,10 @@ export const getSubmissionsByHackathon = async (hackathonId) => {
   const response = await axios.get(`${API_BASE_URL}/submissions/${hackathonId}`);
   return response.data;
 };
+
+// Create a new hackathon
+export const createHackathon = async (hackathonData) => {
+  const response = await axios.post(`${API_BASE_URL}/hackathons`, hackathonData);
+  return response.data;
+};
+

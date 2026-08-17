@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { submitProject } from "../services/api";
 
-const SubmissionForm = ({ hackathonId, onSubmitSuccess }) => {
+const SubmissionForm = ({ hackathonId, submissionDeadline, onSubmitSuccess }) => {
   const [formData, setFormData] = useState({
     teamName: "",
     projectName: "",
@@ -11,6 +11,16 @@ const SubmissionForm = ({ hackathonId, onSubmitSuccess }) => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isClosed, setIsClosed] = useState(false);
+
+  useEffect(() => {
+    if (submissionDeadline) {
+      const diff = new Date(submissionDeadline) - new Date();
+      if (diff <= 0) {
+        setIsClosed(true);
+      }
+    }
+  }, [submissionDeadline]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,6 +30,11 @@ const SubmissionForm = ({ hackathonId, onSubmitSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (isClosed) {
+      setError("Submissions for this hackathon are closed.");
+      return;
+    }
 
     if (!formData.teamName || !formData.projectName || !formData.githubUrl || !formData.description) {
       setError("Please fill in all required fields.");
@@ -44,7 +59,13 @@ const SubmissionForm = ({ hackathonId, onSubmitSuccess }) => {
 
   return (
     <form className="form-container" onSubmit={handleSubmit}>
-      {error && <div className="alert-error">{error}</div>}
+      {isClosed && (
+        <div className="alert-error" style={{ marginBottom: "20px", fontWeight: "bold" }}>
+          ⛔ Submissions for this hackathon are closed because the deadline has passed.
+        </div>
+      )}
+
+      {error && !isClosed && <div className="alert-error">{error}</div>}
 
       <div className="form-group">
         <label htmlFor="teamName">Team Name *</label>
@@ -55,6 +76,7 @@ const SubmissionForm = ({ hackathonId, onSubmitSuccess }) => {
           value={formData.teamName}
           onChange={handleChange}
           placeholder="e.g. Code Ninjas"
+          disabled={isClosed}
           required
         />
       </div>
@@ -68,6 +90,7 @@ const SubmissionForm = ({ hackathonId, onSubmitSuccess }) => {
           value={formData.projectName}
           onChange={handleChange}
           placeholder="e.g. Smart Energy Dashboard"
+          disabled={isClosed}
           required
         />
       </div>
@@ -81,6 +104,7 @@ const SubmissionForm = ({ hackathonId, onSubmitSuccess }) => {
           value={formData.githubUrl}
           onChange={handleChange}
           placeholder="https://github.com/username/project"
+          disabled={isClosed}
           required
         />
       </div>
@@ -94,6 +118,7 @@ const SubmissionForm = ({ hackathonId, onSubmitSuccess }) => {
           value={formData.demoUrl}
           onChange={handleChange}
           placeholder="https://youtube.com/watch?v=..."
+          disabled={isClosed}
         />
       </div>
 
@@ -105,12 +130,18 @@ const SubmissionForm = ({ hackathonId, onSubmitSuccess }) => {
           value={formData.description}
           onChange={handleChange}
           placeholder="Briefly describe what your project does and technologies used..."
+          disabled={isClosed}
           required
         />
       </div>
 
-      <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%" }}>
-        {loading ? "Submitting..." : "Submit Project"}
+      <button
+        type="submit"
+        className="btn btn-primary"
+        disabled={loading || isClosed}
+        style={{ width: "100%", opacity: isClosed ? 0.6 : 1, cursor: isClosed ? "not-allowed" : "pointer" }}
+      >
+        {isClosed ? "Submissions Closed" : loading ? "Submitting..." : "Submit Project"}
       </button>
     </form>
   );

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getHackathonById } from "../services/api";
 import SubmissionForm from "../components/SubmissionForm";
+import CountdownTimer from "../components/CountdownTimer";
 
 const SubmitProject = () => {
   const { id } = useParams();
@@ -28,12 +29,19 @@ const SubmitProject = () => {
 
   return (
     <div>
-      <h2 style={{ textAlign: "center", marginBottom: "5px" }}>
-        Submit Project for {hackathon ? hackathon.title : `Hackathon #${id}`}
-      </h2>
-      <p className="text-muted" style={{ textAlign: "center", marginBottom: "25px" }}>
-        Enter your team details and repository link below.
-      </p>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "20px" }}>
+        <h2 style={{ textAlign: "center", marginBottom: "8px" }}>
+          Submit Project for {hackathon ? hackathon.title : `Hackathon #${id}`}
+        </h2>
+        {hackathon?.submissionDeadline && (
+          <div style={{ marginBottom: "12px" }}>
+            <CountdownTimer deadline={hackathon.submissionDeadline} />
+          </div>
+        )}
+        <p className="text-muted" style={{ textAlign: "center" }}>
+          Enter your team details and repository link below.
+        </p>
+      </div>
 
       {submitted ? (
         <div style={{ textAlign: "center", marginTop: "30px" }}>
@@ -50,7 +58,11 @@ const SubmitProject = () => {
           </div>
         </div>
       ) : (
-        <SubmissionForm hackathonId={id} onSubmitSuccess={() => setSubmitted(true)} />
+        <SubmissionForm
+          hackathonId={id}
+          submissionDeadline={hackathon?.submissionDeadline}
+          onSubmitSuccess={() => setSubmitted(true)}
+        />
       )}
     </div>
   );

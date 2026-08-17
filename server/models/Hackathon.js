@@ -9,7 +9,8 @@ const hackathonSchema = new mongoose.Schema(
     timeline: { type: String, default: "TBD" },
     date: { type: String, required: true },
     location: { type: String, default: "Online" },
-    prizePool: { type: String, default: "N/A" }
+    prizePool: { type: String, default: "N/A" },
+    submissionDeadline: { type: Date, required: true }
   },
   {
     timestamps: true

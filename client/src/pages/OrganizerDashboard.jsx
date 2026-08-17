@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getHackathons, updateHackathon, deleteHackathon } from "../services/api";
+import { getHackathons, createHackathon, updateHackathon, deleteHackathon } from "../services/api";
 
 const OrganizerDashboard = () => {
   const [hackathons, setHackathons] = useState([]);
@@ -16,7 +16,19 @@ const OrganizerDashboard = () => {
     rules: "",
     timeline: "",
     location: "",
-    prizePool: ""
+    prizePool: "",
+    submissionDeadline: ""
+  });
+
+  // Create Modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    title: "",
+    description: "",
+    date: "",
+    location: "",
+    prizePool: "",
+    submissionDeadline: ""
   });
 
   useEffect(() => {
@@ -35,6 +47,7 @@ const OrganizerDashboard = () => {
     }
   };
 
+  // Handlers for Edit Modal
   const handleOpenEditModal = (hackathon) => {
     setEditingHackathon(hackathon);
     setFormData({
@@ -44,7 +57,8 @@ const OrganizerDashboard = () => {
       rules: hackathon.rules || "",
       timeline: hackathon.timeline || "",
       location: hackathon.location || "",
-      prizePool: hackathon.prizePool || ""
+      prizePool: hackathon.prizePool || "",
+      submissionDeadline: hackathon.submissionDeadline || ""
     });
     setIsModalOpen(true);
   };
@@ -83,13 +97,51 @@ const OrganizerDashboard = () => {
     }
   };
 
+  // Handlers for Create Modal
+  const handleOpenCreateModal = () => {
+    setCreateFormData({
+      title: "",
+      description: "",
+      date: "",
+      location: "",
+      prizePool: "",
+      submissionDeadline: ""
+    });
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const handleCreateInputChange = (e) => {
+    const { name, value } = e.target;
+    setCreateFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createHackathon(createFormData);
+      handleCloseCreateModal();
+      fetchData();
+    } catch (err) {
+      alert("Error creating hackathon: " + (err.response?.data?.message || err.message));
+    }
+  };
+
   if (loading) return <div>Loading dashboard...</div>;
 
   return (
     <div>
-      <div style={{ marginBottom: "20px" }}>
-        <h2>Organizer Dashboard</h2>
-        <p className="text-muted">Manage existing hackathons (Edit details or Delete).</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div>
+          <h2>Organizer Dashboard</h2>
+          <p className="text-muted">Manage existing hackathons (Edit details or Delete).</p>
+        </div>
+        <button onClick={handleOpenCreateModal} className="btn btn-primary">
+          + Create Hackathon
+        </button>
       </div>
 
       {error && <div className="alert-error">{error}</div>}
@@ -101,7 +153,7 @@ const OrganizerDashboard = () => {
               <th>ID</th>
               <th>Title</th>
               <th>Date</th>
-              <th>Location</th>
+              <th>Submission Deadline</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -120,7 +172,19 @@ const OrganizerDashboard = () => {
                     <strong>{h.title}</strong>
                   </td>
                   <td>{h.date}</td>
-                  <td>{h.location}</td>
+                  <td>
+                    {h.submissionDeadline ? (
+                      new Date(h.submissionDeadline) < new Date() ? (
+                        <span style={{ color: "#ef4444", fontWeight: "bold" }}>⛔ Closed</span>
+                      ) : (
+                        <span style={{ color: "#16a34a", fontWeight: "600" }}>
+                          {new Date(h.submissionDeadline).toLocaleString()}
+                        </span>
+                      )
+                    ) : (
+                      <span style={{ color: "#64748b" }}>No deadline</span>
+                    )}
+                  </td>
                   <td>
                     <div className="btn-group">
                       <button onClick={() => handleOpenEditModal(h)} className="btn btn-secondary">
@@ -177,6 +241,16 @@ const OrganizerDashboard = () => {
               </div>
 
               <div className="form-group">
+                <label>Submission Deadline</label>
+                <input
+                  type="datetime-local"
+                  name="submissionDeadline"
+                  value={formData.submissionDeadline}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="form-group">
                 <label>Location</label>
                 <input
                   type="text"
@@ -204,6 +278,89 @@ const OrganizerDashboard = () => {
                 </button>
                 <button type="submit" className="btn btn-primary">
                   Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Hackathon Modal */}
+      {isCreateModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Create New Hackathon</h3>
+            <form onSubmit={handleCreateSubmit} style={{ marginTop: "15px" }}>
+              <div className="form-group">
+                <label>Title *</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={createFormData.title}
+                  onChange={handleCreateInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Description *</label>
+                <textarea
+                  name="description"
+                  value={createFormData.description}
+                  onChange={handleCreateInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Date *</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={createFormData.date}
+                  onChange={handleCreateInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Submission Deadline</label>
+                <input
+                  type="datetime-local"
+                  name="submissionDeadline"
+                  value={createFormData.submissionDeadline}
+                  onChange={handleCreateInputChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Location</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={createFormData.location}
+                  onChange={handleCreateInputChange}
+                  placeholder="e.g. Online or Tech Hub"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Prize Pool</label>
+                <input
+                  type="text"
+                  name="prizePool"
+                  value={createFormData.prizePool}
+                  onChange={handleCreateInputChange}
+                  placeholder="e.g. ₹50,000"
+                />
+              </div>
+
+              <div className="btn-group" style={{ justifyContent: "flex-end", marginTop: "20px" }}>
+                <button type="button" onClick={handleCloseCreateModal} className="btn btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Create Hackathon
                 </button>
               </div>
             </form>

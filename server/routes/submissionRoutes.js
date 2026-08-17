@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   createSubmission,
   getAllSubmissions,
-  getSubmissionsByHackathon
+  getSubmissionsByHackathon,
 } = require("../controllers/submissionController");
 
 // Submission routes
